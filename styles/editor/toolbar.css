@@ -1,0 +1,78 @@
+.scrollable-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.color-picker-container {
+  width: fit-content;
+  height: fit-content;
+  padding: 0;
+}
+
+.color-picker {
+  box-shadow: none !important;
+}
+
+.color-picker div {
+  padding-bottom: 0 !important;
+}
+
+.color-btn {
+  padding-top: 9px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 9px;
+  display: inline-flex;
+  width: 50%;
+  height: 100%;
+}
+
+.color-btn button {
+  width: 100%;
+  height: 100%;
+  text-align: left;
+  font-size: small;
+  color: gray;
+}
+
+.color-btn .droplet-icon,
+.color-btn .circle-plus-icon {
+  height: 0.8rem;
+  width: 0.8rem;
+  color: gray;
+  margin-right: 3px;
+  margin-bottom: 3px;
+  display: inline;
+}
+
+.drop-horizontal-menu {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.more-item {
+  flex: 1 1 auto;
+}
+
+.font-family-btn {
+  display: inline-block;
+  font-size: small;
+  min-width: 50px;
+  max-width: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.is-active {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.toolBtn {
+  padding: 0.5rem;
+  width: 40px;
+}
+
+.toolBtn:focus {
+  box-shadow: none;
+}
