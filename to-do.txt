@@ -1,0 +1,12 @@
+Platform
+- Integrate chatbot
+Editor
+- Refine system prompts
+- Highlighting system of AI changes from context.
+Chatbot
+- https://sdk.vercel.ai/docs/guides/rag-chatbot
+- The chatbot doesn't need the addResource tool, since it should only add embeddings from the author’s texts. On document save, aside from inserting the document into the database, it should also add embeddings of it.
+- Delete addResource from app/ai/api/chat/route.ts
+- onSave of page to db, use createResource/
+- Add to the chat a context DropdownMenu, offering to use as context different documents and folders. findRelevantContent will limit results from embeddings table where ‘path’ contains the context. Path contains all folder names the document is in as well as the document name.
+- Offer multiple AIs
