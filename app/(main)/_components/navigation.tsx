@@ -9,6 +9,8 @@ import {
   Search,
   Settings,
   Trash,
+  MessageSquareMore,
+  BookOpen,
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
@@ -131,6 +133,14 @@ const Navigation = () => {
     });
   };
 
+  const routeAssistant = () => {
+    window.location.href = "assistant";
+  };
+
+  const routeDocuments = () => {
+    window.location.href = "documents";
+  };
+
   return (
     <>
       <aside
@@ -154,6 +164,12 @@ const Navigation = () => {
         <div>
           <UserItem />
           <Item onClick={search.onOpen} icon={Search} label="Search" isSearch />
+          <Item
+            onClick={routeAssistant}
+            icon={MessageSquareMore}
+            label="Assistant"
+          />
+          <Item onClick={routeDocuments} icon={BookOpen} label="Documents" />
           <Item onClick={settings.onOpen} icon={Settings} label="Settings" />
           <Item onClick={handleCreate} label="New Page" icon={PlusCircle} />
         </div>

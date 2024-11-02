@@ -15,11 +15,21 @@ import {
 } from "@/components/ui/command";
 import { useSearch } from "@/hooks/use-search";
 import { api } from "@/convex/_generated/api";
+import type { SearchResult } from "@/lib/types";
 
 export const SearchCommand = () => {
   const { user } = useUser();
   const router = useRouter();
   const documents = useQuery(api.documents.getSearch);
+  const folders = useQuery(api.folders.getSearch);
+  const searchResults: SearchResult[] = [];
+  if (folders) {
+    searchResults.push.apply(searchResults, folders);
+  }
+  if (documents) {
+    searchResults.push.apply(searchResults, documents);
+  }
+
   const [isMounted, setIsMounted] = useState(false);
 
   const toggle = useSearch((store) => store.toggle);
@@ -54,16 +64,16 @@ export const SearchCommand = () => {
       <CommandInput placeholder={`Search ${user?.fullName}'s Author Desk`} />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Documents">
-          {documents?.map((document) => (
+        <CommandGroup heading="Results">
+          {searchResults?.map((result) => (
             <CommandItem
-              key={document._id}
-              value={`${document._id}-${document.title}`}
-              title={document.title}
+              key={result._id}
+              value={`${result._id}-${result.title}`}
+              title={result.title}
               onSelect={onSelect}
             >
-              {document.icon ? (
-                <p className="mr-2 text-[18px]">{document.icon}</p>
+              {"icon" in result && result.icon ? (
+                <p className="mr-2 text-[18px]">{result.icon}</p>
               ) : (
                 <File className="mr-2 h-4 w-4" />
               )}

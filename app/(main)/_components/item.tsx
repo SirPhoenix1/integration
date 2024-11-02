@@ -5,17 +5,21 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/clerk-react";
+import { DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 import { useMutation } from "convex/react";
 import {
+  Book,
+  BookPlus,
   ChevronDown,
   ChevronRight,
+  FilePlus,
+  FileText,
   LucideIcon,
   MoreHorizontal,
   Plus,
@@ -25,7 +29,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface ItemProps {
-  id?: Id<"documents">;
+  id?: Id<"documents"> | Id<"folders">;
   documentIcon?: string;
   active?: boolean;
   expanded?: boolean;
@@ -51,22 +55,38 @@ export const Item = ({
 }: ItemProps) => {
   const { user } = useUser();
   const router = useRouter();
-  const create = useMutation(api.documents.create);
-  const archive = useMutation(api.documents.archive);
+  const createDocument = useMutation(api.documents.create);
+  const createFolder = useMutation(api.folders.create);
+  const archiveDocument = useMutation(api.documents.archive);
+  const archiveFolder = useMutation(api.folders.archive);
 
   const onArchive = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     event.stopPropagation();
     if (!id) return;
 
-    const promise = archive({ id }).then(() => {
-      router.push("/documents");
-    });
+    const isFolder = id.__tableName === "folders";
 
-    toast.promise(promise, {
-      loading: "Moving to trash...",
-      success: "Note moved to trash!",
-      error: "Failed to archive note.",
-    });
+    if (!isFolder) {
+      const promise = archiveDocument({ id }).then(() => {
+        router.push("/documents");
+      });
+
+      toast.promise(promise, {
+        loading: "Moving document to trash...",
+        success: "Moved document to trash!",
+        error: "Failed to archive document.",
+      });
+    } else if (isFolder) {
+      const promise = archiveFolder({ id }).then(() => {
+        router.push("/documents");
+      });
+
+      toast.promise(promise, {
+        loading: "Moving folder to trash...",
+        success: "Moved folder to trash!",
+        error: "Failed to archive folder.",
+      });
+    }
   };
 
   const handleExpand = (
@@ -76,28 +96,59 @@ export const Item = ({
     onExpand?.();
   };
 
-  const onCreate = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const onCreateDocument = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     event.stopPropagation();
 
-    if (!id) return;
+    const isFolder = !!id && id.__tableName === "folders";
 
-    const promise = create({ title: "Untitled", parentDocument: id }).then(
-      (documentId) => {
-        if (!expanded) {
-          onExpand?.();
-        }
-        router.push(`/documents/${documentId}`);
+    if (!isFolder) return;
+
+    const promise = createDocument({
+      title: "Untitled",
+      parentFolder: id,
+    }).then((documentId) => {
+      if (!expanded) {
+        onExpand?.();
       }
-    );
+      router.push(`/documents/${documentId}`);
+    });
 
     toast.promise(promise, {
-      loading: "Creating a new note...",
-      success: "New note created!",
-      error: "Failed to create a new note.",
+      loading: "Creating a new document...",
+      success: "New document created!",
+      error: "Failed to create a new document.",
+    });
+  };
+
+  const onCreateFolder = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    event.stopPropagation();
+
+    const isFolder = !!id && id.__tableName === "folders";
+
+    if (!isFolder) return;
+
+    const promise = createFolder({
+      title: "Untitled",
+      parentFolder: id,
+    }).then((folderId) => {
+      if (!expanded) {
+        onExpand?.();
+      }
+    });
+
+    toast.promise(promise, {
+      loading: "Creating a new folder...",
+      success: "New folder created!",
+      error: "Failed to create a new folder.",
     });
   };
 
   const ChevronIcon = expanded ? ChevronDown : ChevronRight;
+  const isFolder = !!id && id.__tableName === "folders";
 
   return (
     <div
@@ -109,7 +160,7 @@ export const Item = ({
         active && "bg-primary/5 text-primary"
       )}
     >
-      {!!id && (
+      {isFolder && (
         <div
           role="button"
           className="h-full rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 mr-1"
@@ -164,13 +215,24 @@ export const Item = ({
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-          <div
-            role="button"
-            onClick={onCreate}
-            className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
-          >
-            <Plus className="h-4 w-4 text-muted-foreground" />
-          </div>
+          {isFolder && (
+            <>
+              <div
+                role="button"
+                onClick={onCreateFolder}
+                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
+              >
+                <BookPlus className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div
+                role="button"
+                onClick={onCreateDocument}
+                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
+              >
+                <FilePlus className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { Doc, Id } from "./_generated/dataModel";
+import { Doc } from "./_generated/dataModel";
 import { UserIdentity } from "convex/server";
 
 const verifyIdentity = (identity: UserIdentity | null) => {
@@ -12,25 +12,25 @@ const verifyIdentity = (identity: UserIdentity | null) => {
 };
 
 export const archive = mutation({
-  args: { id: v.id("documents") },
+  args: { id: v.id("folders") },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
     const userId = verifyIdentity(identity);
 
-    const existingDocument = await ctx.db.get(args.id);
+    const existingFolder = await ctx.db.get(args.id);
 
-    if (!existingDocument) {
+    if (!existingFolder) {
       throw new Error("Not found.");
     }
 
-    if (existingDocument.userId !== userId) {
+    if (existingFolder.userId !== userId) {
       throw new Error("Unauthorized.");
     }
 
-    const document = await ctx.db.patch(args.id, { isArchived: true });
+    const folder = await ctx.db.patch(args.id, { isArchived: true });
 
-    return document;
+    return folder;
   },
 });
 
@@ -43,8 +43,8 @@ export const getSidebar = query({
 
     const userId = verifyIdentity(identity);
 
-    const documents = await ctx.db
-      .query("documents")
+    const folders = await ctx.db
+      .query("folders")
       .withIndex("by_user_parent", (q) =>
         q.eq("userId", userId).eq("parentFolder", args.parentFolder)
       )
@@ -52,7 +52,7 @@ export const getSidebar = query({
       .order("desc")
       .collect();
 
-    return documents;
+    return folders;
   },
 });
 
@@ -66,7 +66,7 @@ export const create = mutation({
 
     const userId = verifyIdentity(identity);
 
-    const document = await ctx.db.insert("documents", {
+    const folder = await ctx.db.insert("folders", {
       title: args.title,
       parentFolder: args.parentFolder,
       userId,
@@ -74,58 +74,58 @@ export const create = mutation({
       isPublished: false,
     });
 
-    return document;
-  },
-});
-
-export const getTrash = query({
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    const userId = verifyIdentity(identity);
-
-    const documents = await ctx.db
-      .query("documents")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("isArchived"), true))
-      .order("desc")
-      .collect();
-
-    return documents;
+    return folder;
   },
 });
 
 export const restore = mutation({
-  args: { id: v.id("documents") },
+  args: { id: v.id("folders") },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
     const userId = verifyIdentity(identity);
 
-    const existingDocument = await ctx.db.get(args.id);
+    const existingFolder = await ctx.db.get(args.id);
 
-    if (!existingDocument) {
+    if (!existingFolder) {
       throw new Error("Not found.");
     }
 
-    if (existingDocument.userId !== userId) {
+    if (existingFolder.userId !== userId) {
       throw new Error("Unauthorized.");
     }
 
-    const options: Partial<Doc<"documents">> = {
+    const options: Partial<Doc<"folders">> = {
       isArchived: false,
     };
 
-    if (existingDocument.parentFolder) {
-      const parent = await ctx.db.get(existingDocument.parentFolder);
+    if (existingFolder.parentFolder) {
+      const parent = await ctx.db.get(existingFolder.parentFolder);
       if (parent?.isArchived) {
         options.parentFolder = undefined;
       }
     }
 
-    const document = await ctx.db.patch(args.id, options);
+    const folder = await ctx.db.patch(args.id, options);
 
-    return document;
+    return folder;
+  },
+});
+
+export const getSearch = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    const userId = verifyIdentity(identity);
+
+    const folders = await ctx.db
+      .query("folders")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("isArchived"), false))
+      .order("desc")
+      .collect();
+
+    return folders;
   },
 });
 
@@ -203,41 +203,6 @@ export const update = mutation({
   },
 });
 
-export const getSearch = query({
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    const userId = verifyIdentity(identity);
-
-    const documents = await ctx.db
-      .query("documents")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("isArchived"), false))
-      .order("desc")
-      .collect();
-
-    return documents;
-  },
-});
-
-export const removeIcon = mutation({
-  args: { id: v.id("documents") },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    const userId = verifyIdentity(identity);
-
-    const existingDocument = await ctx.db.get(args.id);
-
-    if (!existingDocument) throw new Error("Not Found.");
-    if (existingDocument.userId !== userId) throw new Error("Unauthorized.");
-
-    const document = await ctx.db.patch(args.id, { icon: undefined });
-
-    return document;
-  },
-});
-
 export const removeCoverImage = mutation({
   args: { id: v.id("documents") },
   handler: async (ctx, args) => {
@@ -256,7 +221,7 @@ export const removeCoverImage = mutation({
   },
 });
 
-export const getDocuments = query({
+export const getFolders = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 

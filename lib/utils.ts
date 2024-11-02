@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { customAlphabet } from "nanoid";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -11,3 +12,5 @@ export enum Alignment {
   CENTER = "center",
   JUSTIFY = "justify",
 }
+
+export const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789");

@@ -2,7 +2,7 @@
 
 import { createStreamableValue } from "ai/rsc";
 import { streamText } from "ai";
-import { chosenModel } from "@/app/api/ai/models";
+import { chosenModel } from "@/lib/ai/models";
 
 const DEFAULT_MAX_LENGTH = 50;
 
